@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Automated Revenue Engine for Modern Brands</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-teal: #0B4F6C;
+            --cta-coral: #F78154;
+            --cta-coral-hover: #F5713A;
+            --dark-text: #2c3e50;
+            --light-text: #ffffff;
+            --bg-light: #F9F9F9;
+            --bg-dark: #2c3e50;
+            --border-light: #e0e0e0;
+            --offer-bg-blue: #4a69bd;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Poppins', sans-serif; line-height: 1.6; color: var(--dark-text); background-color: var(--light-text); -webkit-font-smoothing: antialiased; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        section { padding: 60px 0; }
+        img { max-width: 100%; height: auto; display: block; }
+        h1, h2, h3 { font-weight: 700; line-height: 1.2; margin-bottom: 20px; text-align: center; }
+        h1 { font-size: clamp(2.5rem, 6vw, 3.5rem); font-weight: 800; color: var(--dark-text); }
+        h2 { font-size: clamp(2rem, 5vw, 2.8rem); color: var(--primary-teal); }
+        h3 { font-size: 1.5rem; }
+        p { margin-bottom: 15px; text-align: center; font-size: 1.1rem; color: #555; }
+        .sub-headline { font-size: 1.25rem; max-width: 650px; margin: 0 auto 30px; }
+        .cta-button { display: inline-block; background: var(--cta-coral); color: var(--light-text); padding: 18px 35px; font-size: 1.2rem; font-weight: 700; text-decoration: none; border-radius: 8px; transition: background-color 0.3s ease, transform 0.2s ease; text-align: center; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .cta-button:hover { background: var(--cta-coral-hover); transform: translateY(-2px); }
+        .cta-wrapper { text-align: center; margin-top: 30px; }
+        .hero { padding: 60px 0 40px; background-color: #f0f2f5; }
+        .hero-image { max-width: 500px; margin: 40px auto; border-radius: 8px; }
+        .proof-box { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
+        .proof-item { background: var(--light-text); padding: 15px 25px; border-radius: 8px; text-align: center; border: 1px solid var(--border-light); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .proof-item span { display: block; font-size: 1.8rem; font-weight: 700; color: var(--primary-teal); }
+        .problem-list { list-style: none; max-width: 500px; margin: 30px auto; text-align: left; }
+        .problem-list li { font-size: 1.1rem; margin-bottom: 10px; padding-left: 30px; position: relative; }
+        .problem-list li::before { content: '✅'; position: absolute; left: 0; top: 0; }
+        .solution { background-color: var(--bg-light); }
+        .benefits-list { list-style: none; text-align: left; margin-top: 30px; display: grid; gap: 15px; }
+        .benefits-list li { background: #fff; padding: 20px; border-radius: 8px; border-left: 5px solid var(--primary-teal); font-weight: 600; }
+        .cta-bar { background-color: var(--primary-teal); color: var(--light-text); }
+        .cta-bar h2 { color: var(--light-text); margin-bottom: 5px; }
+        .cta-bar p { color: rgba(255,255,255,0.8); font-size: 1.2rem; margin: 0; }
+        .bonus-grid { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 40px; }
+        .bonus-card { background: var(--light-text); border-radius: 12px; overflow: hidden; text-align: center; border: 1px solid var(--border-light); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .bonus-card img { width: 100%; height: 200px; object-fit: contain; }
+        .bonus-content { padding: 25px; }
+        .bonus-content h3 { margin-bottom: 10px; }
+        .bonus-value { display: inline-block; background-color: var(--primary-teal); color: var(--light-text); font-weight: 700; padding: 5px 15px; border-radius: 50px; margin-bottom: 15px; font-size: 0.9rem; }
+        .offer-stack { background-color: var(--offer-bg-blue); }
+        .offer-stack h2 { color: var(--light-text); }
+        .offer-stack .bundle-image { max-width: 500px; margin: 0 auto 30px; border-radius: 8px; }
+        .stack-list { list-style: none; max-width: 500px; margin: 30px auto; border: 2px solid var(--border-light); border-radius: 8px; background: #fff; }
+        .stack-list li { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .stack-list li:not(:last-child) { border-bottom: 1px solid var(--border-light); }
+        .stack-list li span { font-weight: 700; color: var(--primary-teal); }
+        .total-value { margin: 20px auto 10px; font-size: 1.2rem; text-align: center; color: var(--light-text); }
+        .final-price { font-size: 3rem; font-weight: 800; color: var(--light-text); text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .guarantee-seal { max-width: 150px; margin: 0 auto 30px; }
+        .signature { max-width: 200px; margin: 20px auto 0; }
+        .ps-text { max-width: 600px; margin: 20px auto 0; font-style: italic; color: #777; }
+        footer { background: var(--bg-dark); color: rgba(255,255,255,0.7); padding: 60px 0; }
+        footer h2 { color: var(--light-text); }
+        footer .cta-wrapper { margin-bottom: 40px; }
+        footer p { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+        @media (min-width: 768px) { .benefits-list { grid-template-columns: 1fr 1fr; } .bonus-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <div class="container">
+            <h1>Stop Collecting Emails. Start Cultivating Customers.</h1>
+            <p class="sub-headline">The proven 5-day email sequence that turned a fledgling brand's welcome series into an <strong>$82,947/month revenue engine.</strong></p>
+            <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_23-8_w1hbmy.png" alt="The Next Best Message Book" class="hero-image" onerror="this.onerror=null;this.src='https://placehold.co/500x600/FFFFFF/2c3e50?text=Book+Cover';">
+            <div class="proof-box">
+                <div class="proof-item"><span>311%</span> Increase in Revenue</div>
+                <div class="proof-item"><span>67%</span> Increase in LTV</div>
+            </div>
+            <div class="cta-wrapper">
+                <a href="checkout.html" class="cta-button">👉 Claim My Copy & All Bonuses for $4.99</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section id="problem">
+            <div class="container">
+                <h2>Your Welcome Sequence is Your Biggest Untapped Asset.</h2>
+                <p>Every new subscriber is a potential lifelong customer. But for most businesses, the welcome email is a dead end—a polite 'hello' followed by silence. This isn't just a missed opportunity; it's a silent leak draining your potential revenue.</p>
+                <ul class="problem-list">
+                    <li><strong>Ignoring new leads</strong> the moment they show interest.</li>
+                    <li><strong>Failing to build the trust</strong> that creates repeat buyers.</li>
+                    <li><strong>Leaving the crucial first impression</strong> to chance.</li>
+                </ul>
+                <p><strong>You're focused on traffic,</strong> but you're pouring it into a bucket with holes. It's time to patch the holes first.</p>
+            </div>
+        </section>
+        <section id="solution" class="solution">
+            <div class="container">
+                <h2>The Solution: A Welcome Sequence That Sells.</h2>
+                <p>This isn't just a book of tips. It's a plug-and-play asset. A step-by-step blueprint for converting the 'just browsing' subscriber into your most valuable customer—automatically, 24/7.</p>
+                <ul class="benefits-list">
+                    <li><strong>No writing experience?</strong> You get proven, fill-in-the-blank templates that feel authentic.</li>
+                    <li><strong>Tech-averse?</strong> This integrates with any email platform in under an hour.</li>
+                    <li><strong>Small list?</strong> This system is designed to maximize the lifetime value of every single subscriber.</li>
+                    <li><strong>Failed before?</strong> This isn't 'batch and blast.' It's a targeted system that builds relationships first.</li>
+                </ul>
+            </div>
+        </section>
+        <section class="cta-bar">
+            <div class="container">
+                <h2>Unlock the Complete System Today for Just $4.99</h2>
+                <p>(And Get 5 FREE Bonuses Valued at $497)</p>
+            </div>
+        </section>
+        <section id="bonuses">
+            <div class="container">
+                <h2>Claim Your Copy Today and Get These 5 Strategic Bonuses (Valued at $497) FREE:</h2>
+                <div class="bonus-grid">
+                    <div class="bonus-card">
+                        <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_25-8_h9j2dj.png" alt="Bonus 1: Email Accelerator" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Error';">
+                        <div class="bonus-content">
+                            <span class="bonus-value">$97 Value</span>
+                            <h3>BONUS #1: EMAIL ACCELERATOR</h3>
+                            <p>Your welcome sequence is a high-performance engine. This is the premium fuel. A tactical guide to attracting your first 1,000 high-intent subscribers.</p>
+                        </div>
+                    </div>
+                    <div class="bonus-card">
+                        <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_26-8_dkdtgc.png" alt="Bonus 2: Email Marketing Compass" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Error';">
+                        <div class="bonus-content">
+                            <span class="bonus-value">$147 Value</span>
+                            <h3>Bonus: EMAIL MARKETING COMPASS</h3>
+                            <p>Your Revenue Leak Detection System. Stop guessing. This is the exact dashboard we use to track what matters, diagnose leaks, and optimize for profit.</p>
+                        </div>
+                    </div>
+                    <div class="bonus-card">
+                        <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_27-8_ffyjpz.png" alt="Bonus 3: The Quickstart Blueprint" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Error';">
+                        <div class="bonus-content">
+                            <span class="bonus-value">$47 Value</span>
+                            <h3>THE QUICKSTART BLUEPRINT</h3>
+                            <p>Your First 90 Days of Explosive Growth. We'll build your entire automated sequence with you, click-by-click, in under an hour.</p>
+                        </div>
+                    </div>
+                    <div class="bonus-card">
+                        <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_28-8_xlizdq.png" alt="Bonus 4: The First Hello Framework" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Error';">
+                        <div class="bonus-content">
+                            <span class="bonus-value">$97 Value</span>
+                            <h3>THE FIRST HELLO</h3>
+                            <p>Advanced Psychology of 7-Figure Subject Lines. This is a deep-dive masterclass on crafting an opening email that builds instant trust and rapport.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="bonus-card" style="max-width: 400px; margin: 40px auto 0;">
+                    <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_29-8_vame9f.png" alt="Bonus 5: The Complete Audiobook" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Error';">
+                    <div class="bonus-content">
+                        <span class="bonus-value">$27 Value</span>
+                        <h3>THE COMPLETE AUDIOBOOK</h3>
+                        <p>Your Implementation Companion. Absorb the entire system while you drive, work out, or walk. Your time is valuable; this makes learning efficient.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="offer-stack" class="offer-stack">
+            <div class="container">
+                <h2>Your Complete Growth Kit:</h2>
+                <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_30-8_i7c8xh.png" alt="Complete Product Bundle" class="bundle-image" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Error';">
+                <ul class="stack-list">
+                    <li>The Next Best Message eBook <span>($27 Value)</span></li>
+                    <li>BONUS #1: Email Accelerator <span>($97 Value)</span></li>
+                    <li>BONUS #2: Email Marketing Compass <span>($147 Value)</span></li>
+                    <li>BONUS #3: The Quickstart Blueprint <span>($47 Value)</span></li>
+                    <li>BONUS #4: The First Hello <span>($97 Value)</span></li>
+                    <li>BONUS #5: The Complete Audiobook <span>($27 Value)</span></li>
+                </ul>
+                <p class="total-value">Total Value: <strong>$542</strong></p>
+                <p class="final-price">Your Price: Just $4.99</p>
+                <div class="cta-wrapper">
+                     <a href="checkout.html" class="cta-button">YES! Unlock Everything Now for $4.99</a>
+                    <p style="font-size: 0.9rem; margin-top: 10px; color: rgba(255,255,255,0.8);">(Instant Digital Access)</p>
+                </div>
+            </div>
+        </section>
+        <section id="guarantee">
+            <div class="container">
+                <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_31-8_klefvu.png" alt="100 Day Money Back Guarantee" class="guarantee-seal" onerror="this.onerror=null;this.src='https://placehold.co/150x150/CCCCCC/FFFFFF?text=Image+Error';">
+                <h2>The "10x Your Investment" 100-Day Guarantee</h2>
+                <p>Our promise is simple: Implement the strategies in this book. If you don't generate at least 10x your $4.99 investment in new sales within 100 days, email us. We'll issue a full refund, no questions asked. You can keep the book and all the bonuses as our gift.</p>
+                <p>From my family to yours,</p>
+                <img src="https://res.cloudinary.com/dse1cikja/image/upload/v1755396930/IMAGEAsset_32-8_e5rqhk.png" alt="Mike's Signature" class="signature" onerror="this.onerror=null;this.src='https://placehold.co/250x100/CCCCCC/FFFFFF?text=Image+Error';">
+                <p class="ps-text"><strong>P.S.</strong> The math is simple. One new customer, and this system has paid for itself. Every customer after that is pure profit, compounding month after month. Don't let another high-value lead go cold.</p>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <h2>Get Instant Access Now</h2>
+            <div class="cta-wrapper">
+                <a href="checkout.html" class="cta-button">Claim Your Book & Bonuses Now for $4.99</a>
+            </div>
+            <p>&copy; 2025 Your Company Name. All Rights Reserved.</p>
+            <p>This site is not a part of the Facebook website or Facebook Inc. Additionally, this site is NOT endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc.</p>
+        </div>
+    </footer>
+</body>
+</html>

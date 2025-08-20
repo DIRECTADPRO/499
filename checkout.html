@@ -80,17 +80,17 @@
                          <h2 class="text-xl font-bold text-white bg-[#0B4F6C] p-3 rounded-t-lg">3. Billing Information</h2>
                          <div class="p-4 border border-t-0 rounded-b-lg space-y-4">
                             <div>
-                                <label for="card-number-element" class="block text-sm font-medium text-gray-700">Card Number</label>
-                                <div id="card-number-element" class="mt-1"></div>
+                                <label for="card-number" class="block text-sm font-medium text-gray-700">Card Number</label>
+                                <div id="card-number" class="mt-1"></div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label for="card-expiry-element" class="block text-sm font-medium text-gray-700">Expiration Date</label>
-                                    <div id="card-expiry-element" class="mt-1"></div>
+                                    <label for="card-expiry" class="block text-sm font-medium text-gray-700">Expiration Date</label>
+                                    <div id="card-expiry" class="mt-1"></div>
                                 </div>
                                 <div>
-                                    <label for="card-cvc-element" class="block text-sm font-medium text-gray-700">CVC</label>
-                                    <div id="card-cvc-element" class="mt-1"></div>
+                                    <label for="card-cvc" class="block text-sm font-medium text-gray-700">CVC</label>
+                                    <div id="card-cvc" class="mt-1"></div>
                                 </div>
                             </div>
                             <div id="card-errors" role="alert" class="text-red-600 text-sm pt-2"></div>
@@ -135,7 +135,7 @@
         const bumpPrice = 2700;
 
         let elements;
-        let cardNumberElement, cardExpiryElement, cardCvcElement;
+        let cardNumber, cardExpiry, cardCvc;
 
         initialize(currentAmount);
 
@@ -144,38 +144,38 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount: amount })
-            });
-            const data = await response.json();
-            clientSecret = data.clientSecret;
-
+            }).then(res => res.json());
+            
+            clientSecret = response.clientSecret;
             elements = stripe.elements({ clientSecret });
 
-            cardNumberElement = elements.create("cardNumber");
-            cardNumberElement.mount("#card-number-element");
+            cardNumber = elements.create('cardNumber');
+            cardNumber.mount('#card-number');
 
-            cardExpiryElement = elements.create("cardExpiry");
-            cardExpiryElement.mount("#card-expiry-element");
+            cardExpiry = elements.create('cardExpiry');
+            cardExpiry.mount('#card-expiry');
 
-            cardCvcElement = elements.create("cardCvc");
-            cardCvcElement.mount("#card-cvc-element");
+            cardCvc = elements.create('cardCvc');
+            cardCvc.mount('#card-cvc');
         }
 
         orderBumpCheckbox.addEventListener('change', (event) => {
             currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
             totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
+            
+            // We don't need to re-initialize everything, just update the payment intent on the server
+            // For simplicity in this client-only demo, we'll re-init, but a real app might just update the intent.
             initialize(currentAmount);
         });
 
-        form.addEventListener("submit", handleSubmit);
-
-        async function handleSubmit(e) {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
             setLoading(true);
             const email = document.getElementById('email').value;
 
             const { error } = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
-                    card: cardNumberElement,
+                    card: cardNumber,
                     billing_details: {
                         name: document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value,
                         email: email
@@ -189,7 +189,7 @@
             } else {
                 window.location.href = `/order-confirmation.html?email=${encodeURIComponent(email)}`;
             }
-        }
+        });
 
         function setLoading(isLoading) {
             const submitButton = document.getElementById('submit-button');

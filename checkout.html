@@ -12,7 +12,13 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .form-input { border: 1px solid #D1D5DB; border-radius: 0.375rem; padding: 0.75rem 1rem; width: 100%; }
-        #card-element { border: 1px solid #D1D5DB; border-radius: 0.375rem; padding: 0.75rem 1rem; }
+        .StripeElement {
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            padding: 0.75rem 1rem;
+            background-color: white;
+            height: 42px;
+        }
         .StripeElement--focus { border-color: #3B82F6; }
         .StripeElement--invalid { border-color: #EF4444; }
     </style>
@@ -66,10 +72,22 @@
                     </div>
                     <div class="mb-6">
                          <h2 class="text-xl font-bold text-white bg-[#0B4F6C] p-3 rounded-t-lg">3. Billing Information</h2>
-                         <div class="p-4 border border-t-0 rounded-b-lg">
-                            <label for="card-element" class="block text-sm font-medium text-gray-700 mb-2">Credit or debit card</label>
-                            <div id="card-element"></div>
-                            <div id="card-errors" role="alert" class="text-red-600 text-sm mt-2"></div>
+                         <div class="p-4 border border-t-0 rounded-b-lg space-y-4">
+                            <div>
+                                <label for="card-number-element" class="block text-sm font-medium text-gray-700">Card Number</label>
+                                <div id="card-number-element" class="mt-1"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="card-expiry-element" class="block text-sm font-medium text-gray-700">Expiration Date</label>
+                                    <div id="card-expiry-element" class="mt-1"></div>
+                                </div>
+                                <div>
+                                    <label for="card-cvc-element" class="block text-sm font-medium text-gray-700">CVC</label>
+                                    <div id="card-cvc-element" class="mt-1"></div>
+                                </div>
+                            </div>
+                            <div id="card-errors" role="alert" class="text-red-600 text-sm pt-2"></div>
                          </div>
                     </div>
                     <div class="mt-8">
@@ -101,16 +119,18 @@
     </div>
     <script>
         const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J'); // Replace with your publishable key
-        let elements;
         const form = document.getElementById('payment-form');
         const paymentMessage = document.getElementById('payment-message');
         const orderBumpCheckbox = document.getElementById('order-bump');
         const totalPriceEl = document.getElementById('total-price');
         let clientSecret;
-        let currentAmount = 499; // Initial amount in cents
+        let currentAmount = 499;
         
         const basePrice = 499;
         const bumpPrice = 2700;
+
+        let elements;
+        let cardNumberElement, cardExpiryElement, cardCvcElement;
 
         initialize(currentAmount);
 
@@ -126,18 +146,19 @@
             const appearance = { theme: 'stripe' };
             elements = stripe.elements({ appearance, clientSecret });
 
-            const cardElement = elements.create("card");
-            cardElement.mount("#card-element");
+            cardNumberElement = elements.create("cardNumber");
+            cardNumberElement.mount("#card-number-element");
+
+            cardExpiryElement = elements.create("cardExpiry");
+            cardExpiryElement.mount("#card-expiry-element");
+
+            cardCvcElement = elements.create("cardCvc");
+            cardCvcElement.mount("#card-cvc-element");
         }
 
         orderBumpCheckbox.addEventListener('change', (event) => {
-            if (event.currentTarget.checked) {
-                currentAmount = basePrice + bumpPrice;
-            } else {
-                currentAmount = basePrice;
-            }
+            currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
             totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
-            // Re-initialize Stripe with the new amount
             initialize(currentAmount);
         });
 
@@ -147,27 +168,23 @@
             e.preventDefault();
             setLoading(true);
             const email = document.getElementById('email').value;
+
             const { error } = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
-                    card: elements.getElement('card'),
+                    card: cardNumberElement,
                     billing_details: {
                         name: document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value,
                         email: email
                     }
                 }
             });
+
             if (error) {
-                showMessage(error.message || "An unknown error occurred.");
+                document.getElementById('card-errors').textContent = error.message;
                 setLoading(false);
             } else {
                 window.location.href = `/order-confirmation.html?email=${encodeURIComponent(email)}`;
             }
-        }
-
-        function showMessage(messageText) {
-            paymentMessage.classList.remove('hidden');
-            paymentMessage.textContent = messageText;
-            paymentMessage.className = 'bg-red-100 text-red-700 text-center mt-4 p-3 rounded-lg';
         }
 
         function setLoading(isLoading) {

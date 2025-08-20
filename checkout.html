@@ -54,6 +54,16 @@
                             </div>
                         </div>
                     </div>
+                    <!-- ORDER BUMP / JOHNSON BOX -->
+                    <div class="mb-6 p-4 bg-yellow-50 border-2 border-dashed border-yellow-400 rounded-lg">
+                        <div class="flex items-start">
+                            <input id="order-bump" type="checkbox" class="h-6 w-6 text-yellow-500 border-gray-300 rounded focus:ring-yellow-400 mt-1">
+                            <div class="ml-4">
+                                <h3 class="text-lg font-bold text-gray-900">YES! Add The Audiobook Version For Just $27!</h3>
+                                <p class="text-gray-600 mt-1">Don't have time to read? Get the complete audiobook version of "The Next Best Message" to listen on the go. (This is a one-time offer - normally $54!)</p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="mb-6">
                          <h2 class="text-xl font-bold text-white bg-[#0B4F6C] p-3 rounded-t-lg">3. Billing Information</h2>
                          <div class="p-4 border border-t-0 rounded-b-lg">
@@ -64,7 +74,7 @@
                     </div>
                     <div class="mt-8">
                         <div class="text-right mb-4">
-                            <p class="text-2xl font-bold">Total: $4.99</p>
+                            <p class="text-2xl font-bold">Total: <span id="total-price">$4.99</span></p>
                         </div>
                         <button id="submit-button" class="w-full bg-[#F78154] hover:bg-[#F5713A] text-white font-bold py-4 px-4 rounded-lg text-xl transition duration-300">
                             Place Order Now
@@ -94,21 +104,45 @@
         let elements;
         const form = document.getElementById('payment-form');
         const paymentMessage = document.getElementById('payment-message');
+        const orderBumpCheckbox = document.getElementById('order-bump');
+        const totalPriceEl = document.getElementById('total-price');
         let clientSecret;
-        initialize();
-        async function initialize() {
+        let currentAmount = 499; // Initial amount in cents
+        
+        const basePrice = 499;
+        const bumpPrice = 2700;
+
+        initialize(currentAmount);
+
+        async function initialize(amount) {
             const response = await fetch('/.netlify/functions/create-payment-intent', {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount: amount })
             });
             const data = await response.json();
             clientSecret = data.clientSecret;
+
             const appearance = { theme: 'stripe' };
             elements = stripe.elements({ appearance, clientSecret });
+
             const cardElement = elements.create("card");
             cardElement.mount("#card-element");
         }
+
+        orderBumpCheckbox.addEventListener('change', (event) => {
+            if (event.currentTarget.checked) {
+                currentAmount = basePrice + bumpPrice;
+            } else {
+                currentAmount = basePrice;
+            }
+            totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
+            // Re-initialize Stripe with the new amount
+            initialize(currentAmount);
+        });
+
         form.addEventListener("submit", handleSubmit);
+
         async function handleSubmit(e) {
             e.preventDefault();
             setLoading(true);
@@ -129,11 +163,13 @@
                 window.location.href = `/order-confirmation.html?email=${encodeURIComponent(email)}`;
             }
         }
+
         function showMessage(messageText) {
             paymentMessage.classList.remove('hidden');
             paymentMessage.textContent = messageText;
             paymentMessage.className = 'bg-red-100 text-red-700 text-center mt-4 p-3 rounded-lg';
         }
+
         function setLoading(isLoading) {
             const submitButton = document.getElementById('submit-button');
             if (isLoading) {

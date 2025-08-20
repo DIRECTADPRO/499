@@ -80,17 +80,17 @@
                          <h2 class="text-xl font-bold text-white bg-[#0B4F6C] p-3 rounded-t-lg">3. Billing Information</h2>
                          <div class="p-4 border border-t-0 rounded-b-lg space-y-4">
                             <div>
-                                <label for="card-number" class="block text-sm font-medium text-gray-700">Card Number</label>
-                                <div id="card-number" class="mt-1"></div>
+                                <label for="card-number-element" class="block text-sm font-medium text-gray-700">Card Number</label>
+                                <div id="card-number-element" class="mt-1"></div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label for="card-expiry" class="block text-sm font-medium text-gray-700">Expiration Date</label>
-                                    <div id="card-expiry" class="mt-1"></div>
+                                    <label for="card-expiry-element" class="block text-sm font-medium text-gray-700">Expiration Date</label>
+                                    <div id="card-expiry-element" class="mt-1"></div>
                                 </div>
                                 <div>
-                                    <label for="card-cvc" class="block text-sm font-medium text-gray-700">CVC</label>
-                                    <div id="card-cvc" class="mt-1"></div>
+                                    <label for="card-cvc-element" class="block text-sm font-medium text-gray-700">CVC</label>
+                                    <div id="card-cvc-element" class="mt-1"></div>
                                 </div>
                             </div>
                             <div id="card-errors" role="alert" class="text-red-600 text-sm pt-2"></div>
@@ -124,102 +124,99 @@
         </div>
     </div>
     <script>
-        const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J'); // Replace with your publishable key
-        const form = document.getElementById('payment-form');
-        const orderBumpCheckbox = document.getElementById('order-bump');
-        const totalPriceEl = document.getElementById('total-price');
-        
-        let clientSecret;
-        let currentAmount = 499;
-        const basePrice = 499;
-        const bumpPrice = 2700;
+        document.addEventListener('DOMContentLoaded', async () => {
+            const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J'); // Replace with your publishable key
+            
+            const form = document.getElementById('payment-form');
+            const orderBumpCheckbox = document.getElementById('order-bump');
+            const totalPriceEl = document.getElementById('total-price');
+            const cardErrorsEl = document.getElementById('card-errors');
+            const submitButton = document.getElementById('submit-button');
 
-        let elements;
-        let cardNumber, cardExpiry, cardCvc;
+            const basePrice = 499;
+            const bumpPrice = 2700;
+            let currentAmount = basePrice;
+            
+            let elements;
+            let cardNumber, cardExpiry, cardCvc;
+            let clientSecret;
 
-        // Function to fetch Payment Intent and initialize elements
-        const setupStripeElements = async (amount) => {
-            try {
-                const response = await fetch('/.netlify/functions/create-payment-intent', {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: amount })
+            const setupElements = (secret) => {
+                elements = stripe.elements({ clientSecret: secret });
+
+                if (cardNumber) cardNumber.destroy();
+                cardNumber = elements.create('cardNumber');
+                cardNumber.mount('#card-number-element');
+
+                if (cardExpiry) cardExpiry.destroy();
+                cardExpiry = elements.create('cardExpiry');
+                cardExpiry.mount('#card-expiry-element');
+
+                if (cardCvc) cardCvc.destroy();
+                cardCvc = elements.create('cardCvc');
+                cardCvc.mount('#card-cvc-element');
+            };
+
+            const updatePaymentIntent = async (amount) => {
+                try {
+                    const response = await fetch('/.netlify/functions/create-payment-intent', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ amount: amount })
+                    });
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    clientSecret = data.clientSecret;
+                    setupElements(clientSecret);
+                } catch (error) {
+                    cardErrorsEl.textContent = "Error loading payment form. Please refresh and try again.";
+                    console.error("Payment Intent Error:", error);
+                }
+            };
+
+            await updatePaymentIntent(currentAmount);
+
+            orderBumpCheckbox.addEventListener('change', (event) => {
+                currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
+                totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
+                updatePaymentIntent(currentAmount);
+            });
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                cardErrorsEl.textContent = '';
+                
+                const { error } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardNumber,
+                        billing_details: {
+                            name: `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`,
+                            email: document.getElementById('email').value
+                        }
+                    }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to create payment intent.');
-                }
-                
-                const data = await response.json();
-                clientSecret = data.clientSecret;
-                elements = stripe.elements({ clientSecret });
-
-                // Unmount existing elements if they exist
-                if (cardNumber) cardNumber.unmount();
-                if (cardExpiry) cardExpiry.unmount();
-                if (cardCvc) cardCvc.unmount();
-
-                // Create and mount new elements
-                cardNumber = elements.create('cardNumber');
-                cardNumber.mount('#card-number');
-
-                cardExpiry = elements.create('cardExpiry');
-                cardExpiry.mount('#card-expiry');
-
-                cardCvc = elements.create('cardCvc');
-                cardCvc.mount('#card-cvc');
-            } catch (error) {
-                console.error("Error setting up Stripe:", error);
-                document.getElementById('card-errors').textContent = "Could not load payment form. Please check your connection or contact support.";
-            }
-        };
-
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', () => {
-            setupStripeElements(currentAmount);
-        });
-
-        // Handle order bump change
-        orderBumpCheckbox.addEventListener('change', (event) => {
-            currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
-            totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
-            setupStripeElements(currentAmount);
-        });
-
-        // Handle form submission
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            setLoading(true);
-            const email = document.getElementById('email').value;
-
-            const { error } = await stripe.confirmCardPayment(clientSecret, {
-                payment_method: {
-                    card: cardNumber,
-                    billing_details: {
-                        name: `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`,
-                        email: email
-                    }
+                if (error) {
+                    cardErrorsEl.textContent = error.message;
+                    setLoading(false);
+                } else {
+                    window.location.href = `/order-confirmation.html?email=${encodeURIComponent(document.getElementById('email').value)}`;
                 }
             });
 
-            if (error) {
-                document.getElementById('card-errors').textContent = error.message;
-                setLoading(false);
-            } else {
-                window.location.href = `/order-confirmation.html?email=${encodeURIComponent(email)}`;
+            function setLoading(isLoading) {
+                if (isLoading) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 inline-block" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
+                } else {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Place Order Now';
+                }
             }
         });
-
-        function setLoading(isLoading) {
-            const submitButton = document.getElementById('submit-button');
-            if (isLoading) {
-                submitButton.disabled = true;
-                submitButton.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 inline-block" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
-            } else {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Place Order Now';
-            }
-        }
     </script>
 </body>
 </html>

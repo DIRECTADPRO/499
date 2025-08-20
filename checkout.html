@@ -13,11 +13,17 @@
         body { font-family: 'Poppins', sans-serif; }
         .form-input { border: 1px solid #D1D5DB; border-radius: 0.375rem; padding: 0.75rem 1rem; width: 100%; }
         .StripeElement {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #4A5568;
+            background-color: #fff;
+            background-clip: padding-box;
             border: 1px solid #D1D5DB;
             border-radius: 0.375rem;
-            padding: 0.75rem 1rem;
-            background-color: white;
-            height: 42px;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
         }
         .StripeElement--focus { border-color: #3B82F6; }
         .StripeElement--invalid { border-color: #EF4444; }
@@ -120,12 +126,11 @@
     <script>
         const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J'); // Replace with your publishable key
         const form = document.getElementById('payment-form');
-        const paymentMessage = document.getElementById('payment-message');
         const orderBumpCheckbox = document.getElementById('order-bump');
         const totalPriceEl = document.getElementById('total-price');
+        
         let clientSecret;
         let currentAmount = 499;
-        
         const basePrice = 499;
         const bumpPrice = 2700;
 
@@ -143,8 +148,7 @@
             const data = await response.json();
             clientSecret = data.clientSecret;
 
-            const appearance = { theme: 'stripe' };
-            elements = stripe.elements({ appearance, clientSecret });
+            elements = stripe.elements({ clientSecret });
 
             cardNumberElement = elements.create("cardNumber");
             cardNumberElement.mount("#card-number-element");

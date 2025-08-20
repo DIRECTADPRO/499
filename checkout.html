@@ -103,7 +103,6 @@
                         <button id="submit-button" class="w-full bg-[#F78154] hover:bg-[#F5713A] text-white font-bold py-4 px-4 rounded-lg text-xl transition duration-300">
                             Place Order Now
                         </button>
-                        <div id="payment-message" class="hidden text-center mt-4 p-3 rounded-lg"></div>
                     </div>
                 </form>
             </main>
@@ -124,7 +123,7 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J'); // Replace with your publishable key
             
             const form = document.getElementById('payment-form');
@@ -142,6 +141,7 @@
             let clientSecret;
 
             const setupElements = (secret) => {
+                if (!secret) return;
                 elements = stripe.elements({ clientSecret: secret });
 
                 if (cardNumber) cardNumber.destroy();
@@ -159,14 +159,22 @@
 
             const updatePaymentIntent = async (amount) => {
                 try {
-                    const response = await fetch('/.netlify/functions/create-payment-intent', {
+                    const functionUrl = '/.netlify/functions/create-payment-intent';
+                    
+                    const response = await fetch(functionUrl, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ amount: amount })
                     });
+
+                    if (!response.ok) {
+                        const errorData = await response.text();
+                        throw new Error(`Server error: ${response.status} ${response.statusText}. Response: ${errorData}`);
+                    }
+
                     const data = await response.json();
-                    if (data.error) {
-                        throw new Error(data.error);
+                    if (data.error || !data.clientSecret) {
+                        throw new Error(data.error || 'Could not retrieve payment information.');
                     }
                     clientSecret = data.clientSecret;
                     setupElements(clientSecret);
@@ -176,7 +184,8 @@
                 }
             };
 
-            await updatePaymentIntent(currentAmount);
+            // Initial setup
+            updatePaymentIntent(currentAmount);
 
             orderBumpCheckbox.addEventListener('change', (event) => {
                 currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
@@ -188,6 +197,12 @@
                 e.preventDefault();
                 setLoading(true);
                 cardErrorsEl.textContent = '';
+                
+                if (!clientSecret || !cardNumber) {
+                    cardErrorsEl.textContent = 'Payment form is not ready. Please wait a moment and try again.';
+                    setLoading(false);
+                    return;
+                }
                 
                 const { error } = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: {

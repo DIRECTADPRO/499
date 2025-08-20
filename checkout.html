@@ -137,37 +137,56 @@
         let elements;
         let cardNumber, cardExpiry, cardCvc;
 
-        initialize(currentAmount);
+        // Function to fetch Payment Intent and initialize elements
+        const setupStripeElements = async (amount) => {
+            try {
+                const response = await fetch('/.netlify/functions/create-payment-intent', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount: amount })
+                });
 
-        async function initialize(amount) {
-            const response = await fetch('/.netlify/functions/create-payment-intent', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: amount })
-            }).then(res => res.json());
-            
-            clientSecret = response.clientSecret;
-            elements = stripe.elements({ clientSecret });
+                if (!response.ok) {
+                    throw new Error('Failed to create payment intent.');
+                }
+                
+                const data = await response.json();
+                clientSecret = data.clientSecret;
+                elements = stripe.elements({ clientSecret });
 
-            cardNumber = elements.create('cardNumber');
-            cardNumber.mount('#card-number');
+                // Unmount existing elements if they exist
+                if (cardNumber) cardNumber.unmount();
+                if (cardExpiry) cardExpiry.unmount();
+                if (cardCvc) cardCvc.unmount();
 
-            cardExpiry = elements.create('cardExpiry');
-            cardExpiry.mount('#card-expiry');
+                // Create and mount new elements
+                cardNumber = elements.create('cardNumber');
+                cardNumber.mount('#card-number');
 
-            cardCvc = elements.create('cardCvc');
-            cardCvc.mount('#card-cvc');
-        }
+                cardExpiry = elements.create('cardExpiry');
+                cardExpiry.mount('#card-expiry');
 
+                cardCvc = elements.create('cardCvc');
+                cardCvc.mount('#card-cvc');
+            } catch (error) {
+                console.error("Error setting up Stripe:", error);
+                document.getElementById('card-errors').textContent = "Could not load payment form. Please check your connection or contact support.";
+            }
+        };
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            setupStripeElements(currentAmount);
+        });
+
+        // Handle order bump change
         orderBumpCheckbox.addEventListener('change', (event) => {
             currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
             totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
-            
-            // We don't need to re-initialize everything, just update the payment intent on the server
-            // For simplicity in this client-only demo, we'll re-init, but a real app might just update the intent.
-            initialize(currentAmount);
+            setupStripeElements(currentAmount);
         });
 
+        // Handle form submission
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             setLoading(true);
@@ -177,7 +196,7 @@
                 payment_method: {
                     card: cardNumber,
                     billing_details: {
-                        name: document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value,
+                        name: `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`,
                         email: email
                     }
                 }

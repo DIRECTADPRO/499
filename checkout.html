@@ -79,7 +79,6 @@
                     <div class="mb-6">
                          <h2 class="text-xl font-bold text-white bg-[#0B4F6C] p-3 rounded-t-lg">3. Billing Information</h2>
                          <div class="p-4 border border-t-0 rounded-b-lg space-y-4">
-                            <!-- --- FIX: Reverted to individual card fields --- -->
                             <div>
                                 <label for="card-number-element" class="block text-sm font-medium text-gray-700">Card Number</label>
                                 <div id="card-number-element" class="mt-1"></div>
@@ -139,14 +138,16 @@
             let currentAmount = basePrice;
             
             let elements;
-            // --- FIX: Declaring variables for individual card elements ---
             let cardNumber, cardExpiry, cardCvc;
             let clientSecret;
 
             // Function to fetch a new Payment Intent from the server
             const updatePaymentIntent = async (amount) => {
                 try {
-                    const functionUrl = '/api/create-payment-intent';
+                    // --- FIX ---
+                    // Using the direct, canonical Netlify function path.
+                    // This is the most reliable way and avoids any redirect/subdomain issues.
+                    const functionUrl = '/.netlify/functions/create-payment-intent';
                     
                     const response = await fetch(functionUrl, {
                         method: "POST",
@@ -181,7 +182,6 @@
 
                 elements = stripe.elements({ clientSecret: secret });
 
-                // --- FIX: Destroying and re-creating individual elements ---
                 if (cardNumber) cardNumber.destroy();
                 cardNumber = elements.create('cardNumber');
                 cardNumber.mount('#card-number-element');
@@ -217,7 +217,6 @@
                     return;
                 }
                 
-                // --- FIX: Using the 'cardNumber' element for confirmation ---
                 const { error } = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: {
                         card: cardNumber,

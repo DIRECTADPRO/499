@@ -15,43 +15,72 @@
         <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <h1 class="text-3xl font-bold text-gray-800 mt-4">Payment Successful!</h1>
         <p class="text-gray-600 mt-2">Thank you for your purchase. Please click the button below to create your account and access your downloads.</p>
+        
+        <!-- Loading state -->
         <div id="loading-state" class="mt-8">
             <p class="text-gray-500">Generating your secure access link...</p>
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mt-4"></div>
         </div>
+        
+        <!-- Success state -->
         <div id="success-state" class="hidden mt-8">
             <a id="access-link" href="#" class="inline-block bg-[#F78154] hover:bg-[#F5713A] text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-300">
                 Create Account & Access Your Kit
             </a>
         </div>
+
+        <!-- Error state -->
         <div id="error-state" class="hidden mt-8 p-4 bg-red-100 text-red-700 rounded-lg">
             <p>Could not generate access link. Please contact support with your purchase email.</p>
         </div>
     </div>
+
     <script>
         window.onload = async () => {
+            const loadingState = document.getElementById('loading-state');
+            const successState = document.getElementById('success-state');
+            const errorState = document.getElementById('error-state');
+            const accessLink = document.getElementById('access-link');
+
             const urlParams = new URLSearchParams(window.location.search);
             const email = urlParams.get('email');
+
             if (!email) {
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('error-state').classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                console.error("No email found in URL parameters.");
                 return;
             }
+
             try {
-                const response = await fetch('/.netlify/functions/generate-invite', {
+                // Use the direct path to the Netlify function for reliability
+                const functionUrl = '/.netlify/functions/generate-invite';
+                
+                const response = await fetch(functionUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email }),
                 });
-                if (!response.ok) { throw new Error('Failed to generate invite link.'); }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to generate invite link. Server responded with: ${errorText}`);
+                }
+
                 const data = await response.json();
-                document.getElementById('access-link').href = data.inviteLink;
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('success-state').classList.remove('hidden');
+
+                if (data.inviteLink) {
+                    accessLink.href = data.inviteLink;
+                    loadingState.classList.add('hidden');
+                    successState.classList.remove('hidden');
+                } else {
+                    throw new Error('Invite link not found in server response.');
+                }
+
             } catch (error) {
                 console.error(error);
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('error-state').classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
             }
         };
     </script>

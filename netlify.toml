@@ -1,13 +1,13 @@
 # netlify.toml
 
 [build]
-  # This is the correct line. It tells Netlify that your
-  # serverless functions are in a folder named "functions".
-  functions = "functions"
+  # This tells Netlify where your main site files are.
+  # If your HTML files are at the root, you don't need to set a publish directory.
+  
+  # This tells Netlify where your serverless functions are.
+  # This path must be correct.
+  functions = "netlify/functions"
 
-# This is the missing redirect rule. It tells the server to
-# forward any request from "/api/..." to your actual function.
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+# This section explicitly configures the function builder.
+[functions]
+  node_bundler = "esbuild"

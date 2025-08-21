@@ -14,22 +14,17 @@
     <div class="bg-white p-8 md:p-12 rounded-lg shadow-xl text-center max-w-lg mx-auto">
         <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <h1 class="text-3xl font-bold text-gray-800 mt-4">Payment Successful!</h1>
-        <p class="text-gray-600 mt-2">Thank you for your purchase. Please click the button below to create your account and access your downloads.</p>
+        <p class="text-gray-600 mt-2">Thank you for your purchase. We are preparing your account.</p>
         
-        <!-- Loading state -->
         <div id="loading-state" class="mt-8">
-            <p class="text-gray-500">Generating your secure access link...</p>
+            <p class="text-gray-500">Finalizing your registration...</p>
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mt-4"></div>
         </div>
         
-        <!-- Success state -->
-        <div id="success-state" class="hidden mt-8">
-            <a id="access-link" href="#" class="inline-block bg-[#F78154] hover:bg-[#F5713A] text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-300">
-                Create Account & Access Your Kit
-            </a>
+        <div id="success-state" class="hidden mt-8 p-4 bg-green-100 text-green-700 rounded-lg">
+             <p>Success! Please check your email for your secure invitation link to create your account.</p>
         </div>
 
-        <!-- Error state -->
         <div id="error-state" class="hidden mt-8 p-4 bg-red-100 text-red-700 rounded-lg">
             <p>Could not generate access link. Please contact support with your purchase email.</p>
         </div>
@@ -40,7 +35,6 @@
             const loadingState = document.getElementById('loading-state');
             const successState = document.getElementById('success-state');
             const errorState = document.getElementById('error-state');
-            const accessLink = document.getElementById('access-link');
 
             const urlParams = new URLSearchParams(window.location.search);
             const email = urlParams.get('email');
@@ -53,7 +47,6 @@
             }
 
             try {
-                // Use the direct path to the Netlify function for reliability
                 const functionUrl = '/.netlify/functions/generate-invite';
                 
                 const response = await fetch(functionUrl, {
@@ -62,19 +55,18 @@
                     body: JSON.stringify({ email: email }),
                 });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Failed to generate invite link. Server responded with: ${errorText}`);
-                }
-
+                // Get the JSON data from the response body
                 const data = await response.json();
 
-                if (data.inviteLink) {
-                    accessLink.href = data.inviteLink;
+                // CHANGED: This is the new logic.
+                // We check if the request was successful AND if our success `message` exists.
+                if (response.ok && data.message) {
+                    // It worked! Show the success message.
                     loadingState.classList.add('hidden');
                     successState.classList.remove('hidden');
                 } else {
-                    throw new Error('Invite link not found in server response.');
+                    // If anything went wrong, or the message is missing, show an error.
+                    throw new Error(data.error || 'An unknown error occurred.');
                 }
 
             } catch (error) {

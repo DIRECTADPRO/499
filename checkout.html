@@ -79,6 +79,7 @@
                     <div class="mb-6">
                          <h2 class="text-xl font-bold text-white bg-[#0B4F6C] p-3 rounded-t-lg">3. Billing Information</h2>
                          <div class="p-4 border border-t-0 rounded-b-lg space-y-4">
+                            <!-- --- FIX: Reverted to individual card fields --- -->
                             <div>
                                 <label for="card-number-element" class="block text-sm font-medium text-gray-700">Card Number</label>
                                 <div id="card-number-element" class="mt-1"></div>
@@ -123,8 +124,9 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J'); // Replace with your publishable key
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Use your actual publishable key
+            const stripe = Stripe('pk_test_51Hh2Y2L9s2d1gH3fL2b1yA0s9c1a0c0b0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z1A2B3C4D5E6F7G8H9I0J');
             
             const form = document.getElementById('payment-form');
             const orderBumpCheckbox = document.getElementById('order-bump');
@@ -132,34 +134,19 @@
             const cardErrorsEl = document.getElementById('card-errors');
             const submitButton = document.getElementById('submit-button');
 
-            const basePrice = 499;
-            const bumpPrice = 2700;
+            const basePrice = 499; // in cents
+            const bumpPrice = 2700; // in cents
             let currentAmount = basePrice;
             
             let elements;
+            // --- FIX: Declaring variables for individual card elements ---
             let cardNumber, cardExpiry, cardCvc;
             let clientSecret;
 
-            const setupElements = (secret) => {
-                if (!secret) return;
-                elements = stripe.elements({ clientSecret: secret });
-
-                if (cardNumber) cardNumber.destroy();
-                cardNumber = elements.create('cardNumber');
-                cardNumber.mount('#card-number-element');
-
-                if (cardExpiry) cardExpiry.destroy();
-                cardExpiry = elements.create('cardExpiry');
-                cardExpiry.mount('#card-expiry-element');
-
-                if (cardCvc) cardCvc.destroy();
-                cardCvc = elements.create('cardCvc');
-                cardCvc.mount('#card-cvc-element');
-            };
-
+            // Function to fetch a new Payment Intent from the server
             const updatePaymentIntent = async (amount) => {
                 try {
-                    const functionUrl = '/.netlify/functions/create-payment-intent';
+                    const functionUrl = '/api/create-payment-intent';
                     
                     const response = await fetch(functionUrl, {
                         method: "POST",
@@ -176,23 +163,49 @@
                     if (data.error || !data.clientSecret) {
                         throw new Error(data.error || 'Could not retrieve payment information.');
                     }
+                    
                     clientSecret = data.clientSecret;
-                    setupElements(clientSecret);
+                    
+                    // Re-initialize Stripe Elements with the new client secret
+                    initializeElements(clientSecret);
+
                 } catch (error) {
                     cardErrorsEl.textContent = "Error loading payment form. Please refresh and try again.";
                     console.error("Payment Intent Error:", error);
                 }
             };
 
-            // Initial setup
-            updatePaymentIntent(currentAmount);
+            // Function to set up Stripe Elements
+            const initializeElements = (secret) => {
+                if (!secret) return;
 
-            orderBumpCheckbox.addEventListener('change', (event) => {
+                elements = stripe.elements({ clientSecret: secret });
+
+                // --- FIX: Destroying and re-creating individual elements ---
+                if (cardNumber) cardNumber.destroy();
+                cardNumber = elements.create('cardNumber');
+                cardNumber.mount('#card-number-element');
+
+                if (cardExpiry) cardExpiry.destroy();
+                cardExpiry = elements.create('cardExpiry');
+                cardExpiry.mount('#card-expiry-element');
+
+                if (cardCvc) cardCvc.destroy();
+                cardCvc = elements.create('cardCvc');
+                cardCvc.mount('#card-cvc-element');
+            };
+
+            // Initial setup on page load
+            await updatePaymentIntent(currentAmount);
+
+            // Update total and payment intent when order bump is checked/unchecked
+            orderBumpCheckbox.addEventListener('change', async (event) => {
                 currentAmount = event.currentTarget.checked ? basePrice + bumpPrice : basePrice;
                 totalPriceEl.textContent = `$${(currentAmount / 100).toFixed(2)}`;
-                updatePaymentIntent(currentAmount);
+                await updatePaymentIntent(currentAmount);
             });
 
+            // Handle form submission
             form.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 setLoading(true);
@@ -204,6 +217,7 @@
                     return;
                 }
                 
+                // --- FIX: Using the 'cardNumber' element for confirmation ---
                 const { error } = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: {
                         card: cardNumber,
@@ -218,10 +232,12 @@
                     cardErrorsEl.textContent = error.message;
                     setLoading(false);
                 } else {
+                    // Redirect to confirmation page on success
                     window.location.href = `/order-confirmation.html?email=${encodeURIComponent(document.getElementById('email').value)}`;
                 }
             });
 
+            // Helper function to show/hide loading state on the submit button
             function setLoading(isLoading) {
                 if (isLoading) {
                     submitButton.disabled = true;

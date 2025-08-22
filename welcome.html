@@ -53,13 +53,13 @@
 
     <script>
         // --- CONFIGURATION ---
-        // Replace these two values with your actual Supabase Project details.
+        // These two values are your actual Supabase Project details.
         const supaUrl = 'https://avyqmdbcdzgkybqrpymz.supabase.co';
-        const supaAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2eXFtZGJjZHpna3licXJweW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTA3ODcsImV4cCI6MjA3MTM4Njc4N30.Bj-aqcspfGGJYNwQA3pD2eoqkG_kfVkK1SxtFdKyK9YHERE'; // <-- IMPORTANT: REPLACE THIS
+        // FIX: Removed the extra "HERE" text from the end of the key.
+        const supaAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2eXFtZGJjZHpna3licXJweW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTA3ODcsImV4cCI6MjA3MTM4Njc4N30.Bj-aqcspfGGJYNwQA3pD2eoqkG_kfVkK1SxtFdKyK9Y';
 
         // --- SCRIPT LOGIC ---
         // Initialize the Supabase client
-        // FIX: The global object from the CDN is `supabase` (lowercase)
         const { createClient } = supabase;
         const supabaseClient = createClient(supaUrl, supaAnonKey);
 

@@ -2,7 +2,6 @@
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event) => {
-  // Ensure the request is a POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -13,36 +12,46 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: 'Email is required.' };
     }
 
-    // Initialize the Supabase client with your new environment variables
-    // This uses the service_role key, which has admin rights to invite users
     const supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_KEY
     );
 
-    // Use the Supabase Admin command to invite a new user
-    // This will send an email with an invite link to the user
+    // We will attempt to invite the user by email
     const { data, error } = await supabase.auth.admin.inviteUserByEmail(email);
 
-    // Handle any errors from Supabase
+    // The Supabase client throws an error if it fails.
+    // If an error object is returned without throwing, this is a safety check.
     if (error) {
-      console.error("Supabase Invite Error:", error);
-      throw new Error(error.message);
+      // We re-throw the error to be caught by our catch block below
+      throw error;
     }
-    
-    console.log("Successfully invited user:", data);
 
-    // Success!
+    console.log("Successfully invited a NEW user:", data);
+    // This is the success case for a brand new user
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: `Invite sent successfully to ${email}` }),
+      body: JSON.stringify({ status: 'invite_sent', message: `Invite sent to new user ${email}` }),
     };
 
   } catch (error) {
+    // This `catch` block will handle all errors, including the "user already exists" case
+    
+    if (error.code === 'email_exists' || (error.message && error.message.includes('already been registered'))) {
+        console.log(`User with email ${email} already exists. This is a success case.`);
+        // THIS IS NOT A FATAL ERROR. The user paid and already has an account.
+        // We return a 200 OK status with a special `status` so the frontend knows what to do.
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ status: 'user_exists', message: 'User already has an account.' })
+        };
+    }
+
+    // This is a real, unexpected error
     console.error('Error in function execution:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to generate invite link.' }),
+      body: JSON.stringify({ error: 'Failed to process registration.' }),
     };
   }
 };
